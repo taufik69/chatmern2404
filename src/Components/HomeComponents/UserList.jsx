@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { HiDotsVertical } from "react-icons/hi";
 import Avatar from "../../assets/homeAssets/avatar.gif";
-import { FaMinus, FaPlus } from "react-icons/fa";
+import { FaMinus, FaPlus, FaUser } from "react-icons/fa";
 import { getDatabase, ref, onValue, off, set, push } from "firebase/database";
 import { getAuth } from "firebase/auth";
 import { UserListSkeleton } from "../../Skeleton/UserList";
@@ -65,9 +65,9 @@ const UserList = () => {
     onValue(FRRef, (snapshot) => {
       const FrBlankArr = [];
       snapshot.forEach((singleFr) => {
-        if (auth.currentUser.uid == singleFr.val().whoRVfrUid) {
+        if (auth.currentUser.uid == singleFr.val().whoSendFrUid) {
           FrBlankArr.push(
-            singleFr?.val()?.whoSendFrUid?.concat(auth?.currentUser?.uid)
+            auth?.currentUser?.uid.concat(singleFr.val().whoRVfrUid)
           );
         }
         setactualFrdList(FrBlankArr);
@@ -169,9 +169,6 @@ const UserList = () => {
                 {user.email || "Missing"}
               </p>
             </div>
-            {actualFrdList?.includes(auth?.currentUser?.uid + user.userid)
-              ? " Friend"
-              : ""}
 
             {frdRequestlist?.includes(auth?.currentUser?.uid + user.userid) ? (
               <button
@@ -179,6 +176,15 @@ const UserList = () => {
                 className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 cursor-pointer"
               >
                 <FaMinus />
+              </button>
+            ) : actualFrdList?.includes(
+                auth?.currentUser?.uid.concat(user.userid.trim())
+              ) ? (
+              <button
+                type="button"
+                className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 cursor-pointer"
+              >
+                <FaUser />
               </button>
             ) : (
               <button

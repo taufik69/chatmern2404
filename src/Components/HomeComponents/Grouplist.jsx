@@ -1,8 +1,29 @@
 import React, { useState } from "react";
 import { HiDotsVertical } from "react-icons/hi";
 import Avatar from "../../assets/homeAssets/avatar.gif";
+import Modal from "react-modal";
+const customStyles = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+    width: "40%",
+  },
+};
+
 const Grouplist = () => {
   const [arrLength, setarrLength] = useState(10);
+  const [modalIsOpen, setIsOpen] = useState(false);
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  function closeModal() {
+    setIsOpen(false);
+  }
   return (
     <div>
       <div class="relative">
@@ -38,7 +59,7 @@ const Grouplist = () => {
         <div className="flex items-center justify-between">
           <h1 className="relative">
             Groups List{" "}
-            <span className="absolute right-0 top-0 w-5 h-5 rounded-full bg-green-300 flex items-center justify-center">
+            <span className="absolute -right-10 top-0 w-5 h-5 rounded-full bg-green-300 flex items-center justify-center">
               {arrLength}
             </span>
           </h1>
@@ -47,6 +68,13 @@ const Grouplist = () => {
             <HiDotsVertical />
           </span>
         </div>
+        <button
+          type="button"
+          onClick={openModal}
+          class="focus:outline-none w-full mb-10 mt-10 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 ~cursor-pointer "
+        >
+          createGroup
+        </button>
         <div className="overflow-y-scroll h-[35dvh] scrollable-content">
           {[...new Array(arrLength)].map((_, index) => (
             <div
@@ -83,6 +111,78 @@ const Grouplist = () => {
         </div>
       </div>
       {/* list part */}
+
+      {/* modal component */}
+      <div>
+        <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          style={customStyles}
+        >
+          <button
+            onClick={closeModal}
+            type="button"
+            class="text-white cursor-pointer bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+          >
+            X
+          </button>
+
+          <div class="w-full p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <form class="max-w-sm mx-auto">
+              <div class="mb-5">
+                <label
+                  for="email"
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Your email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  placeholder="name@flowbite.com"
+                  required
+                />
+              </div>
+              <div class="mb-5">
+                <label
+                  for="password"
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Your password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <label
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                for="user_avatar"
+              >
+                Upload file
+              </label>
+              <input
+                class="block w-full text-sm py-3 px-2 text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                aria-describedby="user_avatar_help"
+                id="user_avatar"
+                type="file"
+              />
+
+              <button
+                type="submit"
+                class="mt-10 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              >
+                Create
+              </button>
+            </form>
+          </div>
+        </Modal>
+      </div>
+      {/* modal component */}
     </div>
   );
 };
