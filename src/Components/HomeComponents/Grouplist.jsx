@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { HiDotsVertical } from "react-icons/hi";
 import Avatar from "../../assets/homeAssets/avatar.gif";
 import Modal from "react-modal";
+import { getDatabase, ref, set } from "firebase/database";
 const customStyles = {
   content: {
     top: "50%",
@@ -14,9 +15,19 @@ const customStyles = {
   },
 };
 
+
 const Grouplist = () => {
-  const [arrLength, setarrLength] = useState(10);
+  const db = getDatabase()
+  // catch the url params
+
+
   const [modalIsOpen, setIsOpen] = useState(false);
+  const [groupError, setGroupError] = useState({})
+  const [groupinfo, setgroupinfo] = useState({
+    groupImage: "",
+    groupTagName: "",
+    groupName: ""
+  })
   function openModal() {
     setIsOpen(true);
   }
@@ -24,6 +35,84 @@ const Grouplist = () => {
   function closeModal() {
     setIsOpen(false);
   }
+
+
+  // validate form input
+  const validationField = () => {
+    let error = {};
+    for (let field in groupinfo) {
+      if (groupinfo[field] === "") {
+        error[`${field}Error`] = `${field} is required or missing`;
+      }
+    }
+    setGroupError(error);
+
+    return Object.keys(error).length === 0;
+  };
+
+
+  // handle change funtion
+  // const handleChange = (event) => {
+  //   const { files, id, value } = event.target
+  //   setgroupinfo({
+  //     ...groupinfo,
+  //     [id]: id == "groupImage" ? files[0] : value
+  //   })
+  //   validationField()
+  // }
+
+  const handleChange = (event) => {
+    const { files, id, value } = event.target;
+    const newValue = id === "groupImage" ? files[0] : value;
+    // Update the group info
+    setgroupinfo((prev) => ({
+      ...prev,
+      [id]: newValue,
+    }));
+
+    // Clear the error for the current field if it has a value
+    setGroupError((prevErrors) => {
+      const newErrors = { ...prevErrors };
+      if (newValue !== "") {
+        delete newErrors[`${id}Error`];
+      }
+      return newErrors;
+    });
+  };
+
+
+  const handleSubmit = async () => {
+    const isValid = validationField();
+    if (!isValid) return;
+    const formData = new FormData();
+    formData.append("file", groupinfo.groupImage);
+    formData.append("upload_preset", "mern2404");
+    try {
+      const res = await fetch("https://api.cloudinary.com/v1_1/ddidljqip/image/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      console.log("Secure URL:", data.secure_url);
+
+      // set groupinfo into db
+
+
+      // const cldImage = myCld.image(data.public_id);
+      // cldImage.resize(fill().width(250).height(250));
+      set(ref(db, 'groupList/'), {
+        adminName: "",
+        email: email,
+        profile_picture: imageUrl
+      });
+
+    } catch (error) {
+      console.error("Image upload failed:", error);
+    }
+  };
+
+
   return (
     <div>
       <div class="relative">
@@ -60,7 +149,7 @@ const Grouplist = () => {
           <h1 className="relative">
             Groups List{" "}
             <span className="absolute -right-10 top-0 w-5 h-5 rounded-full bg-green-300 flex items-center justify-center">
-              {arrLength}
+              0
             </span>
           </h1>
 
@@ -76,10 +165,10 @@ const Grouplist = () => {
           createGroup
         </button>
         <div className="overflow-y-scroll h-[35dvh] scrollable-content">
-          {[...new Array(arrLength)].map((_, index) => (
+          {[...new Array(10)].map((_, index) => (
             <div
               className={
-                arrLength - 1 === index
+                10 - 1 === index
                   ? "flex items-center justify-between mt-3   pb-2"
                   : "flex items-center justify-between mt-3 border-b border-b-gray-800 pb-2"
               }
@@ -128,52 +217,70 @@ const Grouplist = () => {
           </button>
 
           <div class="w-full p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-            <form class="max-w-sm mx-auto">
+            <form class="max-w-sm mx-auto" onSubmit={(e) => e.preventDefault()}>
               <div class="mb-5">
                 <label
-                  for="email"
+                  for="groupname"
                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >
-                  Your email
+                  Group Name
                 </label>
                 <input
-                  type="email"
-                  id="email"
+                  type="text"
+                  id="groupName"
+
+                  onChange={handleChange}
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder="name@flowbite.com"
+                  placeholder="hello"
                   required
                 />
+                {groupError.groupNameError &&
+                  <span className="text-red-500 my-2">{groupError.groupNameError} </span>
+                }
               </div>
               <div class="mb-5">
                 <label
                   for="password"
                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >
-                  Your password
+                  GroupTag Name
                 </label>
                 <input
-                  type="password"
-                  id="password"
+                  type="text"
+                  onChange={handleChange}
+
+                  id="groupTagName"
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   required
                 />
+                {groupError.groupTagNameError &&
+                  <span className="text-red-500 my-2">{groupError.groupTagNameError} </span>
+                }
               </div>
 
-              <label
-                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                for="user_avatar"
-              >
-                Upload file
-              </label>
-              <input
-                class="block w-full text-sm py-3 px-2 text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-                aria-describedby="user_avatar_help"
-                id="user_avatar"
-                type="file"
-              />
+              <div>
+                <label
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  for="user_avatar"
+                >
+                  Upload file
+                </label>
+                <input
+                  onChange={handleChange}
+
+                  class="block w-full text-sm py-3 px-2 text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                  id="groupImage"
+                  type="file"
+                />
+                {groupError.groupImageError &&
+                  <span className="text-red-500 my-2">{groupError.groupImageError} </span>
+                }
+              </div>
+              <AdvancedImage cldImg={groupinfo.groupImage} />
 
               <button
                 type="submit"
+                onClick={handleSubmit}
                 class="mt-10 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               >
                 Create
