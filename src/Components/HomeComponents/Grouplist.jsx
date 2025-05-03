@@ -101,6 +101,7 @@ const Grouplist = () => {
 
       // const cldImage = myCld.image(data.public_id);
       // cldImage.resize(fill().width(250).height(250));
+      // asodf
       set(ref(db, 'groupList/'), {
         adminName: "",
         email: email,
