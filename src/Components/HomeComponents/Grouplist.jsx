@@ -1,118 +1,62 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { HiDotsVertical } from "react-icons/hi";
 import Avatar from "../../assets/homeAssets/avatar.gif";
 import Modal from "react-modal";
-import { getDatabase, ref, set } from "firebase/database";
-const customStyles = {
-  content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)",
-    width: "40%",
-  },
-};
+import lib from '../../lib/lib'
+import { uploadFile, setFirebaseData } from "../../../utils/upload.utils";
+import { closeModal, openModal } from "../../../utils/modal.utils";
+import { validationField } from "../../../validation/groupForm.validation";
+import { handleChange } from "../../../utils/onChangehandeler.utils";
+import { getAuth } from "firebase/auth";
+import Group from "./Group";
 
 
 const Grouplist = () => {
-  const db = getDatabase()
-  // catch the url params
-
-
+  const auth = getAuth()
+  const inputImageRef = useRef(null)
   const [modalIsOpen, setIsOpen] = useState(false);
-  const [groupError, setGroupError] = useState({})
+  const [groupError, setGroupError] = useState({});
+  const [loading, setloading] = useState(false)
   const [groupinfo, setgroupinfo] = useState({
     groupImage: "",
     groupTagName: "",
     groupName: ""
   })
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  function closeModal() {
-    setIsOpen(false);
-  }
-
-
-  // validate form input
-  const validationField = () => {
-    let error = {};
-    for (let field in groupinfo) {
-      if (groupinfo[field] === "") {
-        error[`${field}Error`] = `${field} is required or missing`;
-      }
-    }
-    setGroupError(error);
-
-    return Object.keys(error).length === 0;
-  };
-
-
-  // handle change funtion
-  // const handleChange = (event) => {
-  //   const { files, id, value } = event.target
-  //   setgroupinfo({
-  //     ...groupinfo,
-  //     [id]: id == "groupImage" ? files[0] : value
-  //   })
-  //   validationField()
-  // }
-
-  const handleChange = (event) => {
-    const { files, id, value } = event.target;
-    const newValue = id === "groupImage" ? files[0] : value;
-    // Update the group info
-    setgroupinfo((prev) => ({
-      ...prev,
-      [id]: newValue,
-    }));
-
-    // Clear the error for the current field if it has a value
-    setGroupError((prevErrors) => {
-      const newErrors = { ...prevErrors };
-      if (newValue !== "") {
-        delete newErrors[`${id}Error`];
-      }
-      return newErrors;
-    });
-  };
-
 
   const handleSubmit = async () => {
-    const isValid = validationField();
+    const isValid = validationField(groupinfo, setGroupError);
     if (!isValid) return;
     const formData = new FormData();
     formData.append("file", groupinfo.groupImage);
     formData.append("upload_preset", "mern2404");
     try {
-      const res = await fetch("https://api.cloudinary.com/v1_1/ddidljqip/image/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      console.log("Secure URL:", data.secure_url);
-
-      // set groupinfo into db
-
-
-      // const cldImage = myCld.image(data.public_id);
-      // cldImage.resize(fill().width(250).height(250));
-      // asodf
-      set(ref(db, 'groupList/'), {
-        adminName: "",
-        email: email,
-        profile_picture: imageUrl
-      });
+      setloading(true)
+      const Url = await uploadFile(formData);
+      setFirebaseData('groupList/', {
+        adminName: auth.currentUser.displayName,
+        adminUid: auth.currentUser.uid,
+        adminEmail: auth.currentUser.email,
+        adminPhoto_url: auth.currentUser.photoURL,
+        groupName: groupinfo.groupName,
+        groupTagName: groupinfo.groupTagName,
+        groupImage: Url,
+      })
 
     } catch (error) {
       console.error("Image upload failed:", error);
+    } finally {
+      setloading(false);
+      setgroupinfo({
+        groupImage: "",
+        groupTagName: "",
+        groupName: ""
+      })
+      closeModal(setIsOpen)
+      if (inputImageRef.current) {
+        inputImageRef.current.value = null;
+      }
     }
   };
-
 
   return (
     <div>
@@ -160,7 +104,7 @@ const Grouplist = () => {
         </div>
         <button
           type="button"
-          onClick={openModal}
+          onClick={() => openModal(setIsOpen)}
           class="focus:outline-none w-full mb-10 mt-10 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 ~cursor-pointer "
         >
           createGroup
@@ -206,11 +150,11 @@ const Grouplist = () => {
       <div>
         <Modal
           isOpen={modalIsOpen}
-          onRequestClose={closeModal}
-          style={customStyles}
+          onRequestClose={() => closeModal(setIsOpen)}
+          style={lib.customStyle}
         >
           <button
-            onClick={closeModal}
+            onClick={() => closeModal(setIsOpen)}
             type="button"
             class="text-white cursor-pointer bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
           >
@@ -229,8 +173,8 @@ const Grouplist = () => {
                 <input
                   type="text"
                   id="groupName"
-
-                  onChange={handleChange}
+                  value={groupinfo.groupName}
+                  onChange={(event) => handleChange(event, setgroupinfo, setGroupError)}
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder="hello"
                   required
@@ -248,8 +192,8 @@ const Grouplist = () => {
                 </label>
                 <input
                   type="text"
-                  onChange={handleChange}
-
+                  onChange={(event) => handleChange(event, setgroupinfo, setGroupError)}
+                  value={groupinfo.groupTagName}
                   id="groupTagName"
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   required
@@ -267,8 +211,8 @@ const Grouplist = () => {
                   Upload file
                 </label>
                 <input
-                  onChange={handleChange}
-
+                  onChange={(event) => handleChange(event, setgroupinfo, setGroupError)}
+                  ref={inputImageRef}
                   class="block w-full text-sm py-3 px-2 text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
                   id="groupImage"
                   type="file"
@@ -277,20 +221,28 @@ const Grouplist = () => {
                   <span className="text-red-500 my-2">{groupError.groupImageError} </span>
                 }
               </div>
-              <AdvancedImage cldImg={groupinfo.groupImage} />
 
-              <button
+
+              {loading ? (<button
+                type="submit"
+
+                class="mt-10 animate-pulse text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              >
+                laoding...
+              </button>) : (<button
                 type="submit"
                 onClick={handleSubmit}
                 class="mt-10 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               >
                 Create
-              </button>
+              </button>)}
+
             </form>
           </div>
         </Modal>
       </div>
       {/* modal component */}
+
     </div>
   );
 };

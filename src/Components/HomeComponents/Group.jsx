@@ -1,15 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { HiDotsVertical } from "react-icons/hi";
 import Avatar from "../../assets/homeAssets/avatar.gif";
-const  Group = () => {
+import { fetchData } from "../../../utils/fetchData.utils";
+const Group = () => {
   const [arrLength, setarrLength] = useState(10);
+  useEffect(() => {
+    const fetchDataInvoked = async () => {
+      const value = await fetchData('groupList/');
+      console.log(value);
+
+    }
+    fetchDataInvoked();
+  }, [])
   return (
     <div>
       {/* list part */}
       <div className="shadow-2xs mt-3">
         <div className="flex items-center justify-between">
           <h1 className="relative">
-          Group 
+            MY  Group
             <span className="absolute right-0 top-0 w-5 h-5 rounded-full bg-green-300 flex items-center justify-center">
               {arrLength}
             </span>
@@ -44,9 +53,9 @@ const  Group = () => {
                   Hi Guys, Wassup!
                 </p>
               </div>
-             <p>
-             Today, 8:56pm
-             </p>
+              <p>
+                Today, 8:56pm
+              </p>
             </div>
           ))}
         </div>
