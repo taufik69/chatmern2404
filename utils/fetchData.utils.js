@@ -1,30 +1,62 @@
-import { getDatabase, ref, onValue, get } from "firebase/database";
-import { useState } from "react";
+import { getDatabase, ref, get } from "firebase/database";
+import { useEffect, useState } from "react";
 const db = getDatabase();
 
-export const fetchData = async (dbName = "groupList/") => {
+export const useFetchData = () => {
+  const [groupList, setGrouplist] = useState({
+    data: [],
+    error: {},
+    loading: false,
+  });
+  useEffect(() => {
+    const anyDbData = async () => {
+      setGrouplist({
+        ...groupList,
+        data: [],
+        error: null,
+        loading: true,
+      });
 
-    try {
-
-        const starCountRef = ref(db, dbName);
-        const snapshot = await get(starCountRef);
-        const commonDataBlankArr = [];
+      try {
+        const snapshot = await get(ref(db, "friends"));
         if (snapshot.exists()) {
-            snapshot.forEach((element) => {
-                commonDataBlankArr.push({
-                    ...element.val(),
-                    [`${dbName.replace('/', '')}Key`]: element.key,
-                });
+          let commonDataBlankArr = [];
+          snapshot.forEach((element) => {
+            commonDataBlankArr.push({
+              ...element.val(),
+              [`${"friends/".replace("/", "")}Key`]: element.key,
             });
+          });
+          setGrouplist({
+            ...groupList,
+            data: commonDataBlankArr,
+            error: null,
+            loading: false,
+          });
+        } else {
+          setGrouplist({
+            ...groupList,
+            data: [],
+            error: null,
+            loading: false,
+          });
         }
+      } catch (error) {
+        console.log("network Request Failed", error);
+        setGrouplist({
+          ...groupList,
+          data: [],
+          error: error,
+          loading: false,
+        });
+      }
+    };
 
-
-        return commonDataBlankArr;
-
-
-    } catch (error) {
-        throw new Error(`Failed to fetch data from ${dbName} database: ${error.message}`);
-    }
-}
-
-
+    anyDbData();
+    return () => {
+      anyDbData();
+    };
+  }, []);
+  console.log(groupList);
+  return groupList;
+};

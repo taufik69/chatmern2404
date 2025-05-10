@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { HiDotsVertical } from "react-icons/hi";
 import Avatar from "../../assets/homeAssets/avatar.gif";
 import Modal from "react-modal";
-import lib from '../../lib/lib'
+import lib from "../../lib/lib";
 import { uploadFile, setFirebaseData } from "../../../utils/upload.utils";
 import { closeModal, openModal } from "../../../utils/modal.utils";
 import { validationField } from "../../../validation/groupForm.validation";
@@ -10,18 +10,17 @@ import { handleChange } from "../../../utils/onChangehandeler.utils";
 import { getAuth } from "firebase/auth";
 import Group from "./Group";
 
-
 const Grouplist = () => {
-  const auth = getAuth()
-  const inputImageRef = useRef(null)
+  const auth = getAuth();
+  const inputImageRef = useRef(null);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [groupError, setGroupError] = useState({});
-  const [loading, setloading] = useState(false)
+  const [loading, setloading] = useState(false);
   const [groupinfo, setgroupinfo] = useState({
     groupImage: "",
     groupTagName: "",
-    groupName: ""
-  })
+    groupName: "",
+  });
 
   const handleSubmit = async () => {
     const isValid = validationField(groupinfo, setGroupError);
@@ -30,9 +29,9 @@ const Grouplist = () => {
     formData.append("file", groupinfo.groupImage);
     formData.append("upload_preset", "mern2404");
     try {
-      setloading(true)
+      setloading(true);
       const Url = await uploadFile(formData);
-      setFirebaseData('groupList/', {
+      setFirebaseData("groupList/", {
         adminName: auth.currentUser.displayName,
         adminUid: auth.currentUser.uid,
         adminEmail: auth.currentUser.email,
@@ -40,8 +39,7 @@ const Grouplist = () => {
         groupName: groupinfo.groupName,
         groupTagName: groupinfo.groupTagName,
         groupImage: Url,
-      })
-
+      });
     } catch (error) {
       console.error("Image upload failed:", error);
     } finally {
@@ -49,9 +47,9 @@ const Grouplist = () => {
       setgroupinfo({
         groupImage: "",
         groupTagName: "",
-        groupName: ""
-      })
-      closeModal(setIsOpen)
+        groupName: "",
+      });
+      closeModal(setIsOpen);
       if (inputImageRef.current) {
         inputImageRef.current.value = null;
       }
@@ -174,14 +172,18 @@ const Grouplist = () => {
                   type="text"
                   id="groupName"
                   value={groupinfo.groupName}
-                  onChange={(event) => handleChange(event, setgroupinfo, setGroupError)}
+                  onChange={(event) =>
+                    handleChange(event, setgroupinfo, setGroupError)
+                  }
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder="hello"
                   required
                 />
-                {groupError.groupNameError &&
-                  <span className="text-red-500 my-2">{groupError.groupNameError} </span>
-                }
+                {groupError.groupNameError && (
+                  <span className="text-red-500 my-2">
+                    {groupError.groupNameError}{" "}
+                  </span>
+                )}
               </div>
               <div class="mb-5">
                 <label
@@ -192,15 +194,19 @@ const Grouplist = () => {
                 </label>
                 <input
                   type="text"
-                  onChange={(event) => handleChange(event, setgroupinfo, setGroupError)}
+                  onChange={(event) =>
+                    handleChange(event, setgroupinfo, setGroupError)
+                  }
                   value={groupinfo.groupTagName}
                   id="groupTagName"
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   required
                 />
-                {groupError.groupTagNameError &&
-                  <span className="text-red-500 my-2">{groupError.groupTagNameError} </span>
-                }
+                {groupError.groupTagNameError && (
+                  <span className="text-red-500 my-2">
+                    {groupError.groupTagNameError}{" "}
+                  </span>
+                )}
               </div>
 
               <div>
@@ -211,38 +217,42 @@ const Grouplist = () => {
                   Upload file
                 </label>
                 <input
-                  onChange={(event) => handleChange(event, setgroupinfo, setGroupError)}
+                  onChange={(event) =>
+                    handleChange(event, setgroupinfo, setGroupError)
+                  }
                   ref={inputImageRef}
                   class="block w-full text-sm py-3 px-2 text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
                   id="groupImage"
                   type="file"
                 />
-                {groupError.groupImageError &&
-                  <span className="text-red-500 my-2">{groupError.groupImageError} </span>
-                }
+                {groupError.groupImageError && (
+                  <span className="text-red-500 my-2">
+                    {groupError.groupImageError}{" "}
+                  </span>
+                )}
               </div>
 
-
-              {loading ? (<button
-                type="submit"
-
-                class="mt-10 animate-pulse text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                laoding...
-              </button>) : (<button
-                type="submit"
-                onClick={handleSubmit}
-                class="mt-10 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Create
-              </button>)}
-
+              {loading ? (
+                <button
+                  type="submit"
+                  class="mt-10 animate-pulse text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  laoding...
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  onClick={handleSubmit}
+                  class="mt-10 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Create
+                </button>
+              )}
             </form>
           </div>
         </Modal>
       </div>
       {/* modal component */}
-
     </div>
   );
 };
