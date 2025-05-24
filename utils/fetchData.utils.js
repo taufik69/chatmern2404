@@ -57,6 +57,6 @@ export const useFetchData = () => {
       anyDbData();
     };
   }, []);
-  console.log(groupList);
+
   return groupList;
 };
